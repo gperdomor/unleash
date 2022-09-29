@@ -163,6 +163,12 @@ export default class GroupStore implements IGroupStore {
         return rowToGroup(row[0]);
     }
 
+    async count(): Promise<number> {
+        return this.db(T.GROUPS)
+            .count('*')
+            .then((res) => Number(res[0].count));
+    }
+
     async addNewUsersToGroup(
         groupId: number,
         users: IGroupUserModel[],
