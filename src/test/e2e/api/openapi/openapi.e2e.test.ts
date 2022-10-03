@@ -100,3 +100,39 @@ test('the generated OpenAPI spec is valid', async () => {
 
     expect(enforcerWarning ?? enforcerError).toBe(undefined);
 });
+
+test('all tags are listed in the root "tags" list', async () => {
+    const { body: spec } = await app.request
+        .get('/docs/openapi.json')
+        .expect('Content-Type', /json/)
+        .expect(200);
+
+    const rootLevelTagNames = new Set(spec.tags.map((tag) => tag.name));
+
+    let invalidTags = {};
+    for (const path of Object.values(spec.paths)) {
+        for (const operation of Object.values(path)) {
+            // ensure that the list of tags for every operation is a subset of
+            // the list of tags defined on the root level
+            // const operationTags = new Set(operation.tags);
+
+            for (const tag in operation.tags) {
+                if (rootLevelTagNames.has(tag)) {
+                    invalidTags = {
+                        ...invalidTags,
+                        [path]: {
+                            ...invalidTags[path],
+                            [operation]: [],
+                        },
+                    };
+                }
+            }
+            if (!operationTags.su)
+                expect(rootLevelTagNames).toEqual(
+                    expect.arrayContaining(operation.tags),
+                );
+
+            // todo: make this logging a bit friendlier
+        }
+    }
+});
